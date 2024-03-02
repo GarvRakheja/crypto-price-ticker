@@ -45,7 +45,7 @@ const CryptoPrice = () => {
                         <View style={{ margin: 0, padding: 0, width: 25 }}>
                             <Image source={{ uri: item.image }} style={{ height: 50, weight: 50 }} resizeMode="contain" />
                         </View>
-                        <Text style={styles.symbol} numberOfLines={1} ellipsizeMode="tail">{item.name}</Text>
+                        <Text style={styles.symbol} >{item.name}{item.symbol}</Text>
                         <Text style={styles.symbol2}>{item.symbol}</Text>
                         <Text style={styles.currentPrice} numberOfLines={1} ellipsizeMode="tail">$ {item.current_price}</Text>
                         <Text style={item.price_change_percentage_24h.toString().substring(0, 4) >= 0 ? styles.positiveChange : styles.negativeChange}>
@@ -169,7 +169,8 @@ const styles = StyleSheet.create({
         color: "white",
         padding: 15,
         // backgroundColor: "red",
-        width: "20%"
+        width: "35%",
+        // backgroundColor:"red"
     },
     symbol2: {
         fontWeight: 'bold',
