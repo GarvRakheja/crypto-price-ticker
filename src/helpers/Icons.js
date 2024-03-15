@@ -1,3 +1,8 @@
 export const home_icon = require("../assets/images/home.png")
 export const crypto_icon = require("../assets/images/crypto.png")
 export const calculator_icon = require("../assets/images/profit.png")
+export const search_icon = require("../assets/images/magnifying-glass.png")
+export const bell_icon = require("../assets/images/notification.png")
+export const profile_icon = require("../assets/images/user.png")
+export const back_icon = require("../assets/images/arrow_back.png")
+export const searchError_icon = require("../assets/images/error.png")

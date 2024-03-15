@@ -1,15 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
 import axios from 'axios';
-import Modal from "react-native-modal";
 import { widthToDp, heightToDp } from '../helpers/Responsive';
+import { useNavigation } from '@react-navigation/native'
+import * as Icon from "../helpers/Icons"
+import Modal from 'react-native-modal'
+import styles from "../helpers/Styles"
 
 const CryptoPrice = () => {
     const [prices, setPrices] = useState([]);
     const [loading, setLoading] = useState(true)
     const [modalVisible, setModalVisible] = useState(false)
-    const [selectedItem, setSelectedItem] = useState(null)
+    const [sortOrder, setSortOrder] = useState("HighToLow")
+    const [sortAlpha, setSortAlpha] = useState("AToZ")
     const API_URL = 'https://api.coingecko.com/api/v3';
+
+    const navigation = useNavigation()
+
+    const toggleModal = () => {
+        setModalVisible(!modalVisible)
+    }
+
     useEffect(() => {
         const fetchPrices = async () => {
             try {
@@ -21,7 +32,6 @@ const CryptoPrice = () => {
                     }
                 });
                 const data = response.data;
-                console.log(data)
                 setPrices(data);
             } catch (error) {
                 console.error('Error fetching prices:', error);
@@ -36,10 +46,9 @@ const CryptoPrice = () => {
     const renderCrypto = (item) => {
         return (
             <>
-                <TouchableOpacity onPress={() => {
-                    setSelectedItem(item);
-                    toggleModal()
-                }}>
+                <TouchableOpacity
+                    onPress={() => navigation.navigate('cryptograph', { coin: item })}
+                >
                     <View key={item.symbol} style={styles.priceItem}>
                         <View style={{ flexDirection: "row" }}>
                             <View style={{ margin: 0, padding: 0, width: widthToDp(8) }}>
@@ -61,22 +70,50 @@ const CryptoPrice = () => {
             </>
         )
     }
-    const toggleModal = () => {
-        setModalVisible(!modalVisible)
-    }
+
+    const sortPrices = () => {
+        const sortedPrices = [...prices];
+        if (sortOrder === "highToLow") {
+            sortedPrices.sort((a, b) => b.current_price - a.current_price);
+            setSortOrder("lowToHigh");
+        } else {
+            sortedPrices.sort((a, b) => a.current_price - b.current_price);
+            setSortOrder("highToLow");
+        }
+        setPrices(sortedPrices);
+        // toggleModal();
+    };
+
+    const sortAlphabet = () => {
+        const sortedNames = [...prices];
+        if (sortAlpha === "AToZ") {
+            sortedNames.sort((a, b) => a.name.localeCompare(b.name));
+            setSortAlpha("ZToA");
+        } else {
+            sortedNames.sort((a, b) => b.name.localeCompare(a.name));
+            setSortAlpha("AToZ");
+        }
+        setPrices(sortedNames);
+    };
+    
+
     return (
         <>
-            <View>
-                <Text style={styles.header}>
-                    CoinDesk
-                </Text>
-            </View>
+
             <View style={styles.container}>
+                <View style={styles.marketHeader}>
+                    <Text style={styles.header}>
+                        Markets
+                    </Text>
+                    <TouchableOpacity onPress={() => navigation.navigate('search', { prices })} >
+                        <Image source={Icon.search_icon} style={{ height: heightToDp(3.5), width: widthToDp(6), marginRight: widthToDp(4) }} />
+                    </TouchableOpacity>
+                </View>
                 <View>
                     {
                         loading ?
                             <View style={styles.loader}>
-                                <ActivityIndicator color="red" size="large" />
+                                <ActivityIndicator color="blue" size="large" />
                             </View>
                             : (
                                 <FlatList
@@ -88,135 +125,41 @@ const CryptoPrice = () => {
                             )
                     }
                 </View>
-            </View>
-            <Modal isVisible={modalVisible} onBackdropPress={toggleModal}>
-                <View style={styles.modalContent}>
-                    <View style={{ marginBottom: 5  }}>
-                        <Image
-                            style={{ height: heightToDp(5), width: widthToDp(10) }}
-                            resizeMode="contain"
-                            source={{ uri: selectedItem && selectedItem.image }}
-                        />
-                    </View>
-                    <View style={styles.modalHead}>
-                        <Text style={styles.modalText}>Name :</Text>
-                        <Text style={styles.modalText}>{selectedItem ? selectedItem.name : ''}</Text>
-                    </View>
-                    <View style={styles.modalHead}>
-                        <Text style={styles.modalText}>Symbol :</Text>
-                        <Text style={styles.modalText}>{selectedItem ? selectedItem.symbol : ''}</Text>
-                    </View>
-                    <View style={styles.modalHead}>
-                        <Text style={styles.modalText}>Current Price :</Text>
-                        <Text style={styles.modalText}>$ {selectedItem ? selectedItem.current_price : ''}</Text>
-                    </View>
-                    <View style={styles.modalHead}>
-                        <Text style={styles.modalText}>
-                            Percentage change in 24 hour :
-                        </Text>
-                        <Text style={styles.modalText}>{selectedItem ? selectedItem.price_change_percentage_24h.toString().substring(0, 4) : ''}</Text>
-                    </View>
-                    {/* Add more details here */}
+                <View style={styles.sort}>
+                    <TouchableOpacity onPress={() => toggleModal()}>
+                        <Text style={{ color: "#1D7BFE" }}>sorted by Price</Text>
+                    </TouchableOpacity>
                 </View>
-            </Modal>
+                {/* modal */}
+                <Modal
+                    isVisible={modalVisible}
+                    onSwipeComplete={() => setModalVisible(false)}
+                    swipeDirection='down'
+                    onBackdropPress={() => toggleModal()}
+                    style={styles.modal}
+                >
+                    <View style={styles.modalContainer}>
+                        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", borderBottomWidth: 0.5, borderBottomColor: "#CFCFCF", padding: widthToDp(5) }}>
+                            <Text style={{ fontSize: widthToDp(5), fontWeight: "400", color: "black" }}>Price</Text>
+                            <TouchableOpacity onPress={sortPrices} style={{ backgroundColor: "#AECDFF", padding: widthToDp(2.5), borderRadius: 20 }}>
+                                <Text style={{ color: "#1D7BFE" }}>{sortOrder === "highToLow" ? "High to Low" : "Low to High"}</Text>
+                            </TouchableOpacity>
+                        </View>
+                        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", borderBottomWidth: 0.5, borderBottomColor: "#CFCFCF", padding: widthToDp(5) }}>
+                            <Text style={{ fontSize: widthToDp(5), fontWeight: "400", color: "black" }}>Alphabaticaly</Text>
+                            <TouchableOpacity onPress={sortAlphabet} style={{ backgroundColor: "#AECDFF", padding: widthToDp(2.5), borderRadius: 20 }}>
+                                <Text style={{ color: "#1D7BFE" }}>{sortAlpha === "AToZ" ? "A to Z" : "Z to A"}</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </Modal>
+            </View>
         </>
     );
 };
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 10,
-        // backgroundColor: "#66453F"
-    },
-    priceItem: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: widthToDp(5),
-        marginLeft: widthToDp(2),
-        marginRight: widthToDp(2),
-        borderBottomWidth: 0.5,
-        borderBottomColor: "gray",
-        // backgroundColor: "#35201C",
-    },
-    rowName: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 10,
-        marginTop: 10,
-        marginLeft: 10,
-        marginRight: 10,
-        backgroundColor: "#35201C",
-    },
-    rowText: {
-        fontWeight: '#500',
-        fontSize: 16,
-        color: "white",
-        width: "20%",
-    },
-    symbol: {
-        fontWeight: '#500',
-        fontSize: widthToDp(4),
-        color: "black",
-    },
-    symbol2: {
-        fontWeight: '#500',
-        fontSize: widthToDp(3.5),
-        color: "gray",
-    },
-    currentPrice: {
-        fontSize: widthToDp(4),
-        color: "black",
-        // width: "20%"
-    },
-    positiveChange: {
-        color: 'green',
-        fontSize: widthToDp(4),
-        // width: "20%"
-    },
-    negativeChange: {
-        color: 'red',
-        fontSize: widthToDp(4),
-        // width: "20%"
-    },
-    header: {
-        color: "black",
-        // backgroundColor: "#66453F",
-        padding: widthToDp(4),
-        fontSize: widthToDp(6),
-        textAlign: "center"
-    },
-    loader: {
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        height: heightToDp(100)
-    },
-    modalContent: {
-        backgroundColor: '#35201C',
-        padding: 25,
-        // justifyContent: 'center',
-        // alignItems: 'center',
-        borderRadius: 5,
-        borderColor: 'rgba(0, 0, 0, 0.1)',
-        left: 15,
-        bottom: 0,
-        position: "absolute"
-    },
-    modalText: {
-        marginBottom: 15,
-        color: "white",
-        fontSize: 20
-    },
-    modalHead: {
-        flexDirection: "row",
-        gap: 10,
-    },
-    // header:{
-    //     text
-    // } 
-});
+// const styles = StyleSheet.create({
+
+// });
 
 export default CryptoPrice;
