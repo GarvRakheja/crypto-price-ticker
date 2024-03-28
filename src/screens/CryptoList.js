@@ -1,16 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, Image, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
 import axios from 'axios';
 import { widthToDp, heightToDp } from '../helpers/Responsive';
-import { useNavigation } from '@react-navigation/native'
+import { useFocusEffect, useNavigation } from '@react-navigation/native'
 import * as Icon from "../helpers/Icons"
 import Modal from 'react-native-modal'
 import styles from "../helpers/Styles"
+import Calculator from './Calculator';
 
 const CryptoPrice = () => {
     const [prices, setPrices] = useState([]);
     const [loading, setLoading] = useState(true)
-    const [modalVisible, setModalVisible] = useState(false)
+    const [modalVisible, setModalVisible] = useState(true)
     const [sortOrder, setSortOrder] = useState("HighToLow")
     const [sortAlpha, setSortAlpha] = useState("AToZ")
     const API_URL = 'https://api.coingecko.com/api/v3';
@@ -21,28 +22,31 @@ const CryptoPrice = () => {
         setModalVisible(!modalVisible)
     }
 
-    useEffect(() => {
-        const fetchPrices = async () => {
-            try {
-                const response = await axios.get(`${API_URL}/coins/markets`, {
-                    params: {
-                        vs_currency: 'usd',
-                        // per_page: 20
-                        // ids: 'bitcoin,ethereum,litecoin', // Add more cryptocurrencies as needed
-                    }
-                });
-                const data = response.data;
-                setPrices(data);
-            } catch (error) {
-                console.error('Error fetching prices:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchPrices();
-        const interval = setInterval(fetchPrices, 10 * 1000);
-        return () => clearInterval(interval);
-    }, []);
+    useFocusEffect(
+        useCallback(() => {
+            const fetchPrices = async () => {
+                try {
+                    const response = await axios.get(`${API_URL}/coins/markets`, {
+                        params: {
+                            vs_currency: 'usd',
+                            // per_page: 20
+                            // ids: 'bitcoin,ethereum,litecoin', // Add more cryptocurrencies as needed
+                        }
+                    });
+                    const data = response.data;
+                    setPrices(data);
+                } catch (error) {
+                    console.error('Error fetching prices:', error);
+                } finally {
+                    setLoading(false);
+                }
+            };
+            fetchPrices();
+            const interval = setInterval(fetchPrices, 10 * 1000);
+            return () => clearInterval(interval);
+        }, [])
+    )
+
     const renderCrypto = (item) => {
         return (
             <>
@@ -95,12 +99,13 @@ const CryptoPrice = () => {
         }
         setPrices(sortedNames);
     };
-    
+
 
     return (
         <>
 
             <View style={styles.container}>
+
                 <View style={styles.marketHeader}>
                     <Text style={styles.header}>
                         Markets
@@ -127,7 +132,7 @@ const CryptoPrice = () => {
                 </View>
                 <View style={styles.sort}>
                     <TouchableOpacity onPress={() => toggleModal()}>
-                        <Text style={{ color: "#1D7BFE" }}>sorted by Price</Text>
+                        <Text style={{ color: "#1D7BFE" }}>Sorted by Price</Text>
                     </TouchableOpacity>
                 </View>
                 {/* modal */}
@@ -157,9 +162,4 @@ const CryptoPrice = () => {
         </>
     );
 };
-
-// const styles = StyleSheet.create({
-
-// });
-
 export default CryptoPrice;

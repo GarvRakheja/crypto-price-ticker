@@ -3,6 +3,12 @@ import React from 'react'
 import { widthToDp, heightToDp } from '../helpers/Responsive'
 import * as Icon from "../helpers/Icons"
 import { useNavigation } from "@react-navigation/native"
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+import Gainers from './Gainers'
+import Losers from './Losers'
+import CryptoPrice from './CryptoList'
+
+const Tab = createMaterialTopTabNavigator()
 
 const Home = () => {
   const navigation = useNavigation()
@@ -11,7 +17,7 @@ const Home = () => {
       <View style={styles.header}>
         <View style={styles.searchBar}>
           <View style={styles.profile}>
-            <Image source={Icon.profile_icon} style={{ height: heightToDp(3), width: widthToDp(5.5) }} />
+            <Image source={Icon.profile_icon} tintColor={'#0065B1'} style={{ height: heightToDp(3), width: widthToDp(6) }} />
           </View>
           <TouchableOpacity style={styles.searchBarContent} onPress={() => navigation.navigate('search')}>
             <Image source={Icon.search_icon} style={{ height: heightToDp(2), width: widthToDp(5) }} />
@@ -23,6 +29,14 @@ const Home = () => {
           </View>
         </View>
       </View>
+      <Tab.Navigator
+        screenOptions={{
+          tabBarLabelStyle: { fontSize: widthToDp(3.5), color: "#1D7BFE", fontWeight: "500" },
+        }}
+      >
+        <Tab.Screen name="Gainers" component={Gainers} />
+        <Tab.Screen name="Losers" component={Losers} />
+      </Tab.Navigator>
     </View>
   )
 }
@@ -37,15 +51,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-around",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.5,
-    shadowRadius: 1.41,
+    // shadowColor: "#000",
+    // shadowOffset: {
+    //   width: 0,
+    //   height: 1,
+    // },
+    // shadowOpacity: 0.5,
+    // shadowRadius: 1.41,
 
-    elevation: 2,
+    // elevation: 2,
   },
   searchBarContent: {
     border: 0.5,

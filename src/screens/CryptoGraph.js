@@ -18,7 +18,7 @@ const CryptoGraph = ({ route }) => {
       const graphResponse = await axios.get(`${API_URL}/coins/${coin.id}/market_chart`, {
         params: {
           vs_currency: 'usd',
-          day: 30
+          days: 30
         }
       })
       setGraphData(graphResponse.data.prices)
@@ -40,7 +40,7 @@ const CryptoGraph = ({ route }) => {
   return (
     <View>
       <Text>{coin.name}</Text>
-      <Text>{coin.current_price}</Text>
+      {/* <Text>{coin.current_price}</Text> */}
       {
         loadingGraph ?
           <View>

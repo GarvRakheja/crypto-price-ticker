@@ -1,12 +1,14 @@
-import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, FlatList } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, FlatList, LogBox } from 'react-native'
+import React, { useCallback, useEffect, useState } from 'react'
 import * as Icon from "../helpers/Icons"
 import { heightToDp, widthToDp } from '../helpers/Responsive'
-import { useNavigation } from '@react-navigation/native'
+import { useFocusEffect, useNavigation } from '@react-navigation/native'
 import { useRoute } from '@react-navigation/native'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 const Search = () => {
     const [search, setSearch] = useState('')
+    const [searchHistory, setSearchHistory] = useState([])
     const [searchResults, setSearchResults] = useState([])
     const [showNoResult, setShowNoResult] = useState(false)
     const navigation = useNavigation()
@@ -27,11 +29,43 @@ const Search = () => {
         }
     }, [search, prices])
 
+    const saveSearchHistory = async () => {
+        try {
+            const history = [...searchHistory, search]
+            setSearchHistory(history)
+            await AsyncStorage.setItem("searchHistory", JSON.stringify(history))
+            console.log("history=>", history);
+        } catch (error) {
+            console.log("error saving search histyory", error);
+        }
+    }
+
+    const getSearchHistory = async () => {
+        try {
+            const getHistory = await AsyncStorage.getItem("searchHistory");
+            if (getHistory !== null) {
+                setSearchHistory(JSON.parse(getHistory));
+            }
+            console.log("getHistory=>", getHistory);
+        } catch (error) {
+            console.log("error getting search history", error);
+        }
+    };
+
+
+    useEffect(() => {
+        getSearchHistory()
+    }, [])
+
+    const renderResult = (item) => {
+        saveSearchHistory()
+        navigation.navigate('cryptograph', { coin: item })
+    }
     const renderSearchResult = (item) => {
         return (
             <>
                 <TouchableOpacity
-                    onPress={() => navigation.navigate('cryptograph', { coin: item })}
+                    onPress={renderResult}
                 >
                     <View key={item.symbol} style={styles.priceItem}>
                         <View style={{ flexDirection: "row" }}>
@@ -56,8 +90,22 @@ const Search = () => {
         )
     }
 
+    const rendersearchHistory = (item) => {
+        return (
+            <View>
+                <View>
+                    <Text style={{ fontSize: 20 }}>
+                        {item}
+                    </Text>
+                </View>
+            </View>
+
+        )
+    }
+
     return (
         <View style={styles.container}>
+
             <View style={styles.searchHeader}>
                 <TouchableOpacity onPress={() => navigation.goBack()}>
                     <Image source={Icon.back_icon} style={{ height: heightToDp(3), width: widthToDp(5), marginLeft: widthToDp(3) }} />
@@ -74,6 +122,13 @@ const Search = () => {
                 </View>
             </View>
 
+            <View>
+                <FlatList
+                    data={searchHistory}
+                    renderItem={({ item }) => rendersearchHistory(item)}
+                    keyExtractor={(item) => item.id}
+                />
+            </View>
             {showNoResult ? (
                 <View style={styles.noResults}>
                     <Image source={Icon.searchError_icon} style={{ height: heightToDp(10), width: widthToDp(20) }} />
@@ -86,6 +141,7 @@ const Search = () => {
                     keyExtractor={(item) => item.id}
                 />
             )}
+
         </View>
     )
 }

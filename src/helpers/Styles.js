@@ -8,10 +8,9 @@ export default StyleSheet.create({
         // backgroundColor: "#66453F"
     },
     marketHeader: {
-        // backgroundColor: "red",
         flexDirection: "row",
         justifyContent: "space-between",
-        alignItems: "center"
+        alignItems: "center",
     },
     priceItem: {
         flexDirection: 'row',
